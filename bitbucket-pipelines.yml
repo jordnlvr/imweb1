@@ -1,0 +1,18 @@
+image: php:7.4
+
+pipelines:
+  branches:
+    im/development:
+      - step:
+          name: Deploy to EC2
+          deployment: development
+          script:
+            - apt-get update && apt-get install -y openssh-client && apt-get install -y rsync
+            #- mkdir -p ~/.ssh
+            #- echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            #- chmod 600 ~/.ssh/id_rsa
+            #- echo "Host $EC2_PUBLIC_IP" >> ~/.ssh/config
+            #- echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+            - chmod 400 payme-limo.pem
+            - rsync -avz --progress -e "ssh -o StrictHostKeyChecking=no -i payme-limo.pem" --exclude '.git/' --exclude 'vendor/' --exclude 'node_modules/' --exclude 'tests/' --exclude 'env' --exclude 'app/Config/App.php' --exclude 'app/Config/Database.php' ./ ubuntu@$EC2_PUBLIC_IP:/var/www/html/paymelimo-web
+
